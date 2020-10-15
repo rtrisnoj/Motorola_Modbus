@@ -159,28 +159,26 @@ sapi_error_t temp_write_cfg(char *payload, uint8_t *len)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Measure Ultrasonic data (RS485) and Float
-// Created 09/11/2020
+// MOTOROLA ACE 3380
+// Created 10/14/2020
 // By Ryan Trisnojoyo
 // PINS LAYOUT
 // D2 = RX						RO
 // D3 = TX						DI
 // D4 = DIGITAL OUTPUT			RE
 // D5 = DIGITAL OUTPUT			DE
-// Ultrasonic sensor : 
-// RS485_TX = B		--->		A RS485 Ultrasonic Sensor	
-// RS485_RX = A		--->		B RS485 Ultrasonic Sensor
-// Relay NO			--->		VIN Ultrasonic Sensor
-// Relay COM		--->		V+ Battery 12V
+// Weather Station sensor : 
+// RS485_TX = B		--->		A RS485 Weather Station
+// RS485_RX = A		--->		B RS485 Weatheer Station
 // GND				--->		GND Ultrasnonic Sensor
-// Float sensor:
-// D10				--->		Signal Float pin
-// GND				--->		GND pin
 //////////////////////////////////////////////////////////////////////////
 float resultTemp = 0;
 float resultUltra = 0;
-byte temp_data[12];
-byte sendRS485Request[6]={0xAA,0x01,0x03,0x00,0x00,0xAE}; //Send Request for STATUS Command
+
+byte temp_data[40];
+byte sendRequest10Data[8]={0x0A,0x03,0x08,0x01,0x00,0x0A,0x97,0x16};				//Send Request for Manufacturer ID
+int w = 0;
+
 size_t bytes;
 
 float Send(byte * cmd, byte* ret) {
@@ -190,40 +188,55 @@ float Send(byte * cmd, byte* ret) {
 	digitalWrite(D7, LOW);
 	delay(5000);
 	sendCommand(cmd);
+	
 	int h = 0;
-	 // receive answer
-    if (Serial3.available()){  //Read return data package (NOTE: Demo is just for your reference, the data package haven't be calibrated yet)
-		while(Serial3.read() != 0x01 && h < 1000){
+	// receive answer
+	if (Serial3.available()){  //Read return data package (NOTE: Demo is just for your reference, the data package haven't be calibrated yet)
+	while(Serial3.read() != 0x0A && h < 1000){
 		h = h + 1;
-		}
-	h = 0; 
-	ret[0] = 0x01;
-	for(int j=2; j < 12; j++){
+	}
+	h = 0;
+	ret[0] = 0x0A;
+	for(int j=2; j < 26; j++){
 		ret[j++]=(Serial3.read());
 	}
 	
     Serial.println("Data Begin");
-    Serial.println(ret[0],HEX); //byte 1    //Sensor ID Tag
-    Serial.println(ret[2],HEX); //byte 2    //Response Code
-    Serial.println(ret[4],HEX); //byte 3    //Range LSB
-    Serial.println(ret[6],HEX); //byte 4    //Range MSB
-    Serial.println(ret[8],HEX); //byte 5    //Temperature Data
-    Serial.println(ret[10],HEX); //byte 6   //Checksum mod 256
+    Serial.println(ret[0],HEX); //byte 1    //Slave ID
+    Serial.println(ret[2],HEX); //byte 2    //Function Code
+    Serial.println(ret[4],HEX); //byte 3    //How many bytes send
+    Serial.println(ret[6],HEX); //byte 4    //Hex First Register
+    Serial.println(ret[8],HEX); //byte 5    //Hex Second Register
+    Serial.println(ret[10],HEX); //byte 6   //3rd Register
+	Serial.println(ret[12],HEX); //byte 7   //4th Register
+	Serial.println(ret[14],HEX); //byte 8   //5th Register
+	Serial.println(ret[16],HEX); //byte 9   //6th Register
+	Serial.println(ret[18],HEX); //byte 10   //7th Register
+	Serial.println(ret[20],HEX); //byte 11   //8th Register
+	Serial.println(ret[22],HEX); //byte 12   //9th Register
+	Serial.println(ret[24],HEX); //bytes 13 //10th Register
+	
     Serial.println("Data End");
 
     Serial3.flush();
     Serial.println("Received data Done");
-
+	
+	resultTemp = (float(ret[6])*256)+ float(ret[8]);
+	Serial.print("Temperature: ");
+	Serial.print(resultTemp);
+	Serial.println(" C");
+	
+	/*
     resultTemp = (float(ret[8])*0.48876)-50;
     Serial.print("Temperature: ");
     Serial.print(resultTemp);
     Serial.println(" C");
-
+	
     resultUltra = (float(ret[6]*256)+float(ret[4]))/128;
     Serial.print("Level: ");
     Serial.print(resultUltra);
     Serial.println(" In");
-
+	*/
   }
   else{
     Serial.println("Error reading RS485");
@@ -233,7 +246,7 @@ float Send(byte * cmd, byte* ret) {
 	digitalWrite(D6, LOW);
 	digitalWrite(D7, HIGH);
 	
-	return resultUltra;
+	return resultTemp;
 }
 
 /*sendCommand(...)******************************************************************************
@@ -256,7 +269,7 @@ void sendCommand(byte *cmd) {
  	digitalWrite(D5, HIGH); 
 	delay(100);
 
-	for(int i=0; i < 6; i++){
+	for(int i=0; i < 8; i++){
 		Serial3.write(cmd[i]); 
   //Serial.print(cmd[i]);
 	}	
@@ -269,38 +282,21 @@ void sendCommand(byte *cmd) {
 	delay(50);
 }
  
- /*
-float ultra_temp = 12.00;
-float calculate_Ultra(){
-	 //turn on relay
-	 digitalWrite(D6, HIGH);
-	 digitalWrite(D7, LOW);
-	 delay(5000);
-	 
-	 ultra_temp = analogRead(A5);
-	 
-	 //turn off relay
-	 digitalWrite(D6, LOW);
-	 digitalWrite(D7, HIGH);
-	 return ultra_temp;
- }
- */
- 
- //Float Code
- int temp_float = 0;
- int calculate_Float(){
-	 pinMode(D10, INPUT_PULLUP);
-	 temp_float = digitalRead(D10);
-	 
-	 if (temp_float == 1){
-		 temp_float = 0;
-	 }
-	 else if (temp_float == 0){
-		 temp_float = 1;
-	 }
-	 
-	 return temp_float;
- }
+  //Float Code
+  int temp_float = 0;
+  int calculate_Float(){
+	  pinMode(D10, INPUT_PULLUP);
+	  temp_float = digitalRead(D10);
+	  
+	  if (temp_float == 1){
+		  temp_float = 0;
+	  }
+	  else if (temp_float == 0){
+		  temp_float = 1;
+	  }
+	  
+	  return temp_float;
+  }
 //////////////////////////////////////////////////////////////////////////
 //
 // Code to build the sensor payload. Temp payload is text with this format:
@@ -336,7 +332,7 @@ sapi_error_t temp_build_payload(char *buf, float *reading)
 
 	Serial3.flush();
 	
-	ultra_temp = Send(sendRS485Request, temp_data);
+	ultra_temp = Send(sendRequest10Data, temp_data);
 	sprintf(rultra1, "%.2f,", ultra_temp);
 	sprintf(rfloat, "%d,", calculate_Float());
 

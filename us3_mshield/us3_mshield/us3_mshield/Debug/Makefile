@@ -102,7 +102,7 @@ ADDITIONAL_DEPENDENCIES:=
 OUTPUT_FILE_DEP:= ./makedep.mk
 
 LIB_DEP+=  \
-C:/Users/ryan.trisnojoyo/Documents/Itron/Xeno_Mini_test/float_ultra/us3_mshield/us3_mshield/ArduinoCore/Debug/libArduinoCore.a
+C:/Users/ryan.trisnojoyo/Documents/Itron/Xeno_Mini_test/Motorola_Modbus/us3_mshield/us3_mshield/ArduinoCore/Debug/libArduinoCore.a
 
 LINKER_SCRIPT_DEP+=  \
 ../Device_Startup/saml21g18b_flash.ld \
@@ -190,7 +190,7 @@ all: $(OUTPUT_FILE_PATH) $(ADDITIONAL_DEPENDENCIES)
 $(OUTPUT_FILE_PATH): $(OBJS) $(USER_OBJS) $(OUTPUT_FILE_DEP) $(LIB_DEP) $(LINKER_SCRIPT_DEP)
 	@echo Building target: $@
 	@echo Invoking: ARM/GNU Linker : 6.3.1
-	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\arm\arm-gnu-toolchain\bin\arm-none-eabi-g++.exe$(QUOTE) -o$(OUTPUT_FILE_PATH_AS_ARGS) $(OBJS_AS_ARGS) $(USER_OBJS) $(LIBS) -mthumb -Wl,-Map="us3_mshield.map" --specs=nano.specs --specs=nosys.specs -Wl,--start-group -lm -lArduinoCore  -Wl,--end-group -L"..\linker_scripts\linker_scripts\gcc" -L"..\linker_scripts\linker_scripts\gcc\16KB_Bootloader" -L"..\linker_scripts\linker_scripts\gcc\8KB_Bootloader" -L"..\linker_scripts\linker_scripts\gcc\No_Bootloader" -L"C:\Users\ryan.trisnojoyo\DOCUME~1\Itron\Xeno_Mini_test\float_ultra\us3_mshield\us3_mshield\ArduinoCore\Debug"  -Wl,--gc-sections -mcpu=cortex-m0plus -Tflash_with_bootloader.ld -Wl,--cref -Os -Wl,--check-sections -Wl,--unresolved-symbols=report-all -Wl,--warn-common -Wl,--warn-section-align  
+	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\arm\arm-gnu-toolchain\bin\arm-none-eabi-g++.exe$(QUOTE) -o$(OUTPUT_FILE_PATH_AS_ARGS) $(OBJS_AS_ARGS) $(USER_OBJS) $(LIBS) -mthumb -Wl,-Map="us3_mshield.map" --specs=nano.specs --specs=nosys.specs -Wl,--start-group -lm -lArduinoCore  -Wl,--end-group -L"..\linker_scripts\linker_scripts\gcc" -L"..\linker_scripts\linker_scripts\gcc\16KB_Bootloader" -L"..\linker_scripts\linker_scripts\gcc\8KB_Bootloader" -L"..\linker_scripts\linker_scripts\gcc\No_Bootloader" -L"C:\Users\ryan.trisnojoyo\DOCUME~1\Itron\Xeno_Mini_test\Motorola_Modbus\us3_mshield\us3_mshield\ArduinoCore\Debug"  -Wl,--gc-sections -mcpu=cortex-m0plus -Tflash_with_bootloader.ld -Wl,--cref -Os -Wl,--check-sections -Wl,--unresolved-symbols=report-all -Wl,--warn-common -Wl,--warn-section-align  
 	@echo Finished building target: $@
 	"C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\arm\arm-gnu-toolchain\bin\arm-none-eabi-objcopy.exe" -O binary "us3_mshield.elf" "us3_mshield.bin"
 	"C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\arm\arm-gnu-toolchain\bin\arm-none-eabi-objcopy.exe" -O ihex -R .eeprom -R .fuse -R .lock -R .signature  "us3_mshield.elf" "us3_mshield.hex"
