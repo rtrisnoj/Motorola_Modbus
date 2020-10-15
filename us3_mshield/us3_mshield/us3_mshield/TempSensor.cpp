@@ -167,15 +167,14 @@ sapi_error_t temp_write_cfg(char *payload, uint8_t *len)
 // D3 = TX						DI
 // D4 = DIGITAL OUTPUT			RE
 // D5 = DIGITAL OUTPUT			DE
-// Weather Station sensor : 
-// RS485_TX = B		--->		A RS485 Weather Station
-// RS485_RX = A		--->		B RS485 Weatheer Station
-// GND				--->		GND Ultrasnonic Sensor
+// Two Wire Ethernet Most Left and Most Right
+// RS485_TX = B		--->		Most Left or Most Right
+// RS485_RX = A		--->		Most Left or Most Right
 //////////////////////////////////////////////////////////////////////////
 float resultTemp = 0;
 float resultUltra = 0;
 
-byte temp_data[40];
+byte temp_data[60];
 byte sendRequest10Data[8]={0x0A,0x03,0x08,0x01,0x00,0x0A,0x97,0x16};				//Send Request for Manufacturer ID
 int w = 0;
 
@@ -197,24 +196,34 @@ float Send(byte * cmd, byte* ret) {
 	}
 	h = 0;
 	ret[0] = 0x0A;
-	for(int j=2; j < 26; j++){
+	for(int j=2; j < 46; j++){
 		ret[j++]=(Serial3.read());
 	}
 	
     Serial.println("Data Begin");
-    Serial.println(ret[0],HEX); //byte 1    //Slave ID
-    Serial.println(ret[2],HEX); //byte 2    //Function Code
-    Serial.println(ret[4],HEX); //byte 3    //How many bytes send
-    Serial.println(ret[6],HEX); //byte 4    //Hex First Register
-    Serial.println(ret[8],HEX); //byte 5    //Hex Second Register
-    Serial.println(ret[10],HEX); //byte 6   //3rd Register
-	Serial.println(ret[12],HEX); //byte 7   //4th Register
-	Serial.println(ret[14],HEX); //byte 8   //5th Register
-	Serial.println(ret[16],HEX); //byte 9   //6th Register
-	Serial.println(ret[18],HEX); //byte 10   //7th Register
-	Serial.println(ret[20],HEX); //byte 11   //8th Register
-	Serial.println(ret[22],HEX); //byte 12   //9th Register
-	Serial.println(ret[24],HEX); //bytes 13 //10th Register
+    Serial.println(ret[0],HEX); //byte 1     //Slave ID
+    Serial.println(ret[2],HEX); //byte 2     //Function Code
+    Serial.println(ret[4],HEX); //byte 3     //How many bytes send
+    Serial.println(ret[6],HEX); //byte 4     //Hex High bytes First Register
+    Serial.println(ret[8],HEX); //byte 5     //Hex Low bytes First Register
+    Serial.println(ret[10],HEX); //byte 6    //2nd Register
+	Serial.println(ret[12],HEX); //byte 7    //
+	Serial.println(ret[14],HEX); //byte 8    //3rd Register
+	Serial.println(ret[16],HEX); //byte 9    //
+	Serial.println(ret[18],HEX); //byte 10   //4th Register
+	Serial.println(ret[20],HEX); //byte 11   //
+	Serial.println(ret[22],HEX); //byte 12   //5th Register
+	Serial.println(ret[24],HEX); //byte 13	 //
+	Serial.println(ret[26],HEX); //byte 14   //6th Register
+	Serial.println(ret[28],HEX); //byte 15	 //
+	Serial.println(ret[30],HEX); //byte 16   //7th Register
+	Serial.println(ret[32],HEX); //byte 17	 //
+	Serial.println(ret[34],HEX); //byte 18   //8th Register
+	Serial.println(ret[36],HEX); //byte 19	 //
+	Serial.println(ret[38],HEX); //byte 20   //9th Register
+	Serial.println(ret[40],HEX); //byte 21	 //
+	Serial.println(ret[42],HEX); //byte 18   //10th Register
+	Serial.println(ret[44],HEX); //byte 19	 //
 	
     Serial.println("Data End");
 
@@ -339,7 +348,6 @@ sapi_error_t temp_build_payload(char *buf, float *reading)
 	// Create string containing the UNIX epoch
 	epoch = get_rtc_epoch();
 	sprintf(temp_epoch, "%d,", epoch);
-	
 	
 	//construct ultrasonic data payload
 	sprintf(temp_payload, "%d,", epoch);
