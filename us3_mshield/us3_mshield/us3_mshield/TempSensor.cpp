@@ -177,10 +177,11 @@ float resultUltra = 0;
 byte temp_data[60];
 byte sendRequest10Data[8]={0x0A,0x03,0x08,0x01,0x00,0x0A,0x97,0x16};				//Send Request for Manufacturer ID
 int w = 0;
-
+char		motorola_payload[128];
+char		temp_result[128];
 size_t bytes;
 
-float Send(byte * cmd, byte* ret) {
+char* Send(byte * cmd, byte* ret) {
 	// use default send function
 	//turn on relay
 	digitalWrite(D6, HIGH);
@@ -201,6 +202,7 @@ float Send(byte * cmd, byte* ret) {
 	}
 	
     Serial.println("Data Begin");
+	/*
     Serial.println(ret[0],HEX); //byte 1     //Slave ID
     Serial.println(ret[2],HEX); //byte 2     //Function Code
     Serial.println(ret[4],HEX); //byte 3     //How many bytes send
@@ -224,28 +226,27 @@ float Send(byte * cmd, byte* ret) {
 	Serial.println(ret[40],HEX); //byte 21	 //
 	Serial.println(ret[42],HEX); //byte 18   //10th Register
 	Serial.println(ret[44],HEX); //byte 19	 //
+	*/
+	strcpy(temp_result, "");
 	
+	//put everything in the String (all the rs485 data from Motorola ACE)
+	for (int y = 0; y < 44; y = y + 2){
+		sprintf(motorola_payload, "%X,", ret[y]);
+		strcat(temp_result,motorola_payload);
+	};
+	sprintf(motorola_payload, "%X;", ret[44]);
+	strcat(temp_result,motorola_payload);
+	Serial.println(temp_result);
+	
+	sprintf(motorola_payload, "%X;", ret[44]);
+	Serial.println();
+
+
     Serial.println("Data End");
 
     Serial3.flush();
     Serial.println("Received data Done");
 	
-	resultTemp = (float(ret[6])*256)+ float(ret[8]);
-	Serial.print("Temperature: ");
-	Serial.print(resultTemp);
-	Serial.println(" C");
-	
-	/*
-    resultTemp = (float(ret[8])*0.48876)-50;
-    Serial.print("Temperature: ");
-    Serial.print(resultTemp);
-    Serial.println(" C");
-	
-    resultUltra = (float(ret[6]*256)+float(ret[4]))/128;
-    Serial.print("Level: ");
-    Serial.print(resultUltra);
-    Serial.println(" In");
-	*/
   }
   else{
     Serial.println("Error reading RS485");
@@ -255,7 +256,7 @@ float Send(byte * cmd, byte* ret) {
 	digitalWrite(D6, LOW);
 	digitalWrite(D7, HIGH);
 	
-	return resultTemp;
+	return temp_result;
 }
 
 /*sendCommand(...)******************************************************************************
@@ -329,10 +330,10 @@ sapi_error_t temp_build_payload(char *buf, float *reading)
 	char		unitUltra[] = "In";
 	char		unitFloat[] = "Al";
 	char		unit_buf[4];
-	float		ultra_temp = 10.00;
+	char		motorola_temp[] = "10.00";
 	time_t     	epoch;
 	uint32_t	indx;
-	char    rultra1[] = "12.00,";
+	char    rmotorola1[128] = "12.00,";
 	char    rfloat[] = "2,"; //if it shows 2, float not connected properly. The value should be 0 or 1.
 	char    temp_epoch[20];
 	
@@ -340,10 +341,9 @@ sapi_error_t temp_build_payload(char *buf, float *reading)
 	strcpy(payload, "");
 
 	Serial3.flush();
-	
-	ultra_temp = Send(sendRequest10Data, temp_data);
-	sprintf(rultra1, "%.2f,", ultra_temp);
-	sprintf(rfloat, "%d,", calculate_Float());
+	//Send(sendRequest10Data, temp_data);
+	//* motorola_temp = Send(sendRequest10Data, temp_data); // RT //WRONG HERE, HARDFAULT
+	sprintf(rmotorola1, "%s", Send(sendRequest10Data, temp_data)); //RT
 
 	// Create string containing the UNIX epoch
 	epoch = get_rtc_epoch();
@@ -351,19 +351,9 @@ sapi_error_t temp_build_payload(char *buf, float *reading)
 	
 	//construct ultrasonic data payload
 	sprintf(temp_payload, "%d,", epoch);
-	strcat(temp_payload, datatype_Ultra);
-	strcat(temp_payload, rultra1);
-	strcpy(unit_buf, unitUltra);
-	strcat(temp_payload, unit_buf);
-	strcat(temp_payload, ";");
+	
+	strcat(temp_payload, rmotorola1);
 
-	//construct float data payload
-	strcat(temp_payload,temp_epoch);
-	strcat(temp_payload, datatype_Float);
-	strcat(temp_payload, rfloat);
-	strcpy(unit_buf, unitFloat);
-	strcat(temp_payload, unit_buf);
-	strcat(temp_payload,";");
 	strcpy(payload, temp_payload);
 	/*
 	dlog(LOG_DEBUG, "Temp Payload: %s", payload);

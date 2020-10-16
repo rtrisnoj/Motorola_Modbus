@@ -48,7 +48,7 @@ Networks, Inc.
 
 // DHT11 temp sensor type
 #define TEMP_SENSOR_TYPE		"temp"
-float Send(byte * cmd, byte* ret);
+char* Send(byte * cmd, byte* ret);
 void sendCommand(byte *cmd);
 /*
  * @brief Initialize DHT11 temp sensor. Callback called by sapi_init_sensor function.
