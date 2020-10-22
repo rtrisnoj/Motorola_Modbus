@@ -123,7 +123,7 @@ void setup()
 	//pinMode(A5,INPUT);
 	//pinMode(D11,OUTPUT);
 
-	loadGlobalVariables();
+	//loadGlobalVariables();
 	sampleRate1 = ParamSampleRate();
 	sendInterval1 = ParamSendInterval();
 	//logging array
